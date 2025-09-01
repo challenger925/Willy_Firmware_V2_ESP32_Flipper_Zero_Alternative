@@ -1,0 +1,46 @@
+name: Build Arduino (ESP32-S3 T-Embed)
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v1
+
+      - name: Install ESP32 core
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32
+
+      - name: List boards (debug)
+        run: arduino-cli board listall | grep -i s3 || true
+
+      - name: Install libs (if your sketch needs them)
+        run: |
+          # Example:
+          # arduino-cli lib install "Adafruit GFX Library"
+          # arduino-cli lib install "Adafruit ST7789 Library"
+          echo "No extra libs"
+
+      - name: Compile
+        run: |
+          # Adjust sketch_path below to your .ino location.
+          # Pick a board fqbn close to T-Display-S3 / ESP32-S3 with 16MB flash:
+          # Common choice:
+          #   esp32:esp32:esp32s3:USBMode=cdc,FlashSize=16M,PartitionScheme=huge_app,PSRAM=opi
+          SKETCH_PATH="Willy_Firmware.ino"
+          FQBN="esp32:esp32:esp32s3:USBMode=cdc,FlashSize=16M,PartitionScheme=huge_app,PSRAM=opi"
+          arduino-cli compile --fqbn "$FQBN" --warnings all --export-binaries "$SKETCH_PATH"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: willy_t-embed_cc1101_bin
+          path: |
+            **/*.bin
+            **/*.elf
+            **/*.hex
