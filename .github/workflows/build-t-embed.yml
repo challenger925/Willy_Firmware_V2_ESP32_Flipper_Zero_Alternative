@@ -1,0 +1,22 @@
+name: Build Willy for T-Embed CC1101
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install PlatformIO
+        run: pip install platformio
+      - name: Build firmware
+        run: pio run -e esp32s3_usb_16MB
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: willy_t-embed_cc1101_bin
+          path: .pio/build/esp32s3_usb_16MB/firmware.bin
